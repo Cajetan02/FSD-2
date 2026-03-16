@@ -1,121 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact Manager</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f5f5f3; min-height: 100vh; padding: 2rem 1rem; }
-
-    .wrap { max-width: 760px; margin: 0 auto; }
-
-    .header { margin-bottom: 1.5rem; }
-    .header h1 { font-size: 22px; font-weight: 500; color: #111; }
-    .header p { font-size: 14px; color: #777; margin-top: 4px; }
-
-    .card { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    @media(max-width: 560px){ .form-grid { grid-template-columns: 1fr; } }
-
-    .field label { display: block; font-size: 12px; color: #777; margin-bottom: 4px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
-    .field input { width: 100%; height: 36px; padding: 0 10px; font-size: 14px; border: 0.5px solid #ddd; border-radius: 8px; outline: none; font-family: inherit; color: #111; background: #fff; transition: border-color 0.15s; }
-    .field input:focus { border-color: #999; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-    .field input.error { border-color: #e24b4a; }
-    .err-msg { font-size: 11px; color: #e24b4a; margin-top: 3px; min-height: 14px; }
-
-    .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    .btn-primary { background: #111; color: #fff; border: none; border-radius: 8px; padding: 0 16px; height: 34px; font-size: 13px; cursor: pointer; font-family: inherit; font-weight: 500; transition: opacity 0.15s; }
-    .btn-primary:hover { opacity: 0.8; }
-    .btn-secondary { background: transparent; color: #555; border: 0.5px solid #ccc; border-radius: 8px; padding: 0 14px; height: 34px; font-size: 13px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
-    .btn-secondary:hover { background: #f5f5f3; }
-
-    .search-bar { margin-bottom: 1rem; position: relative; }
-    .search-bar input { width: 100%; height: 36px; padding: 0 10px 0 32px; font-size: 14px; border: 0.5px solid #ddd; border-radius: 8px; outline: none; font-family: inherit; color: #111; background: #fff; transition: border-color 0.15s; }
-    .search-bar input:focus { border-color: #999; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
-    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #aaa; pointer-events: none; }
-
-    .list-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .list-header span { font-size: 13px; color: #777; }
-    .count-badge { background: #eee; border: 0.5px solid #ddd; border-radius: 99px; padding: 2px 10px; font-size: 12px; color: #555; }
-
-    .contact-item { background: #fff; border: 0.5px solid #e0e0e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: grab; transition: border-color 0.15s, box-shadow 0.15s; }
-    .contact-item:active { cursor: grabbing; }
-    .contact-item.dragging { opacity: 0.4; }
-    .contact-item.drag-over { border-color: #999; box-shadow: 0 0 0 2px #e6f1fb; }
-    .contact-item.editing { border-color: #888; }
-
-    .drag-handle { color: #ccc; font-size: 14px; cursor: grab; flex-shrink: 0; user-select: none; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #e6f1fb; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 12px; color: #185fa5; flex-shrink: 0; }
-
-    .contact-info { flex: 1; min-width: 0; }
-    .contact-name { font-size: 14px; font-weight: 500; color: #111; }
-    .contact-meta { font-size: 12px; color: #777; margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; }
-    .contact-meta span { display: flex; align-items: center; gap: 4px; }
-
-    .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-icon { background: transparent; border: 0.5px solid #e0e0e0; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: background 0.12s; color: #555; }
-    .btn-icon:hover { background: #f5f5f3; }
-    .btn-icon.danger:hover { background: #fcebeb; color: #e24b4a; border-color: #f09595; }
-    .btn-icon.edit-active { background: #e6f1fb; color: #185fa5; border-color: #b5d4f4; }
-
-    .empty-state { text-align: center; padding: 2.5rem 1rem; color: #aaa; font-size: 14px; }
-    .empty-state .icon { font-size: 28px; margin-bottom: 8px; }
-
-    .toast { position: fixed; bottom: 20px; right: 20px; background: #111; color: #fff; border-radius: 8px; padding: 10px 16px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; }
-    .toast.show { opacity: 1; transform: translateY(0); }
-  </style>
+    <title>Dynamic Contact Form</title>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="header">
-    <h1>Contact manager</h1>
-    <p>Add, edit, search and reorder your contacts. Data persists in your browser.</p>
-  </div>
+<h2>Contact Form</h2>
 
-  <div class="card">
-    <div class="form-grid">
-      <div class="field">
-        <label>Name</label>
-        <input type="text" id="f-name" placeholder="Full name" autocomplete="off">
-        <div class="err-msg" id="e-name"></div>
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="f-email" placeholder="email@example.com" autocomplete="off">
-        <div class="err-msg" id="e-email"></div>
-      </div>
-      <div class="field">
-        <label>Phone</label>
-        <input type="tel" id="f-phone" placeholder="+91 9034385467" autocomplete="off">
-        <div class="err-msg" id="e-phone"></div>
-      </div>
-    </div>
-    <div class="form-actions">
-      <button class="btn-secondary" id="btn-cancel" style="display:none">Cancel</button>
-      <button class="btn-primary" id="btn-submit">Add contact</button>
-    </div>
-  </div>
+<input type="text" id="name" placeholder="Enter Name">
+<br><br>
 
-  <div class="search-bar">
-    <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="6.5" cy="6.5" r="4"/><path d="M10.5 10.5l3 3"/>
-    </svg>
-    <input type="text" id="search" placeholder="Search by name or email…">
-  </div>
+<input type="email" id="email" placeholder="Enter Email">
+<br><br>
 
-  <div class="list-header">
-    <span id="list-label">Contacts</span>
-    <span class="count-badge" id="count-badge">0</span>
-  </div>
+<input type="number" id="phone" placeholder="Enter Phone">
+<br><br>
 
-  <div id="contact-list"></div>
-</div>
+<button onclick="addContact()">Add Contact</button>
 
-<div class="toast" id="toast"></div>
+<hr>
 
-<script src="app.js"></script>
+<h3>Contact List</h3>
+<div id="contactList"></div>
+
+<script src="script.js"></script>
 </body>
 </html>
